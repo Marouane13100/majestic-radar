@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Majestic Estate — Radar BODACC</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #052E64;
+      --navy-dark: #031D40;
+      --gold: #C9A96E;
+      --white: #FFFFFF;
+      --gray-50: #F8F9FB;
+      --gray-100: #EEF0F4;
+      --gray-300: #C8CDD8;
+      --gray-500: #6B7280;
+      --gray-700: #374151;
+      --green: #166534;
+      --green-bg: #DCFCE7;
+      --amber: #92400E;
+      --amber-bg: #FEF3C7;
+      --red: #991B1B;
+      --red-bg: #FEE2E2;
+      --blue: #1E40AF;
+      --blue-bg: #DBEAFE;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-50); color: var(--gray-700); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header { background: var(--navy); color: var(--white); padding: 0; border-bottom: 3px solid var(--gold); }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo-block { display: flex; align-items: center; gap: 14px; }
+    .monogram { width: 44px; height: 44px; border: 1.5px solid var(--gold); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 300; color: var(--gold); letter-spacing: -2px; font-family: Georgia, serif; }
+    .logo-text .name { font-size: 16px; font-weight: 500; letter-spacing: 0.12em; color: var(--white); }
+    .logo-text .sub { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; margin-top: 2px; font-style: italic; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .live-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #86EFAC; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #22C55E; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .last-update { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+    /* ── MAIN ── */
+    main { max-width: 1200px; margin: 0 auto; padding: 20px 24px; }
+
+    /* ── STATS ── */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat { background: var(--white); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); border: 1px solid var(--gray-100); }
+    .stat-label { font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .stat-val { font-size: 26px; font-weight: 600; color: var(--navy); line-height: 1; }
+    .stat-sub { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+    /* ── FILTERS ── */
+    .filters { background: var(--white); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--gray-100); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .filter-group { display: flex; align-items: center; gap: 6px; }
+    .filter-group label { font-size: 12px; color: var(--gray-500); white-space: nowrap; }
+    select { font-size: 13px; padding: 5px 10px; border-radius: var(--radius-sm); border: 1px solid var(--gray-300); background: var(--white); color: var(--gray-700); cursor: pointer; }
+    select:focus { outline: none; border-color: var(--navy); }
+    .btn-refresh { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--navy); background: var(--navy); color: var(--white); cursor: pointer; transition: opacity 0.15s; }
+    .btn-refresh:hover { opacity: 0.85; }
+    .btn-refresh.loading svg { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TABLE ── */
+    .table-wrap { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--gray-100); overflow: hidden; }
+    .table-head { display: grid; grid-template-columns: 2.5fr 1fr 0.8fr 100px 120px; gap: 8px; padding: 10px 16px; background: var(--gray-50); border-bottom: 1px solid var(--gray-100); }
+    .th { font-size: 11px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.06em; }
+    .row { display: grid; grid-template-columns: 2.5fr 1fr 0.8fr 100px 120px; gap: 8px; padding: 11px 16px; border-bottom: 1px solid var(--gray-100); align-items: center; transition: background 0.1s; cursor: default; }
+    .row:last-child { border-bottom: none; }
+    .row:hover { background: var(--gray-50); }
+    .row-name { font-size: 13px; font-weight: 500; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row-detail { font-size: 11px; color: var(--gray-500); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; display: inline-block; white-space: nowrap; }
+    .badge-red { background: var(--red-bg); color: var(--red); }
+    .badge-amber { background: var(--amber-bg); color: var(--amber); }
+    .badge-blue { background: var(--blue-bg); color: var(--blue); }
+    .badge-gray { background: var(--gray-100); color: var(--gray-500); }
+    .score-wrap { display: flex; align-items: center; gap: 6px; }
+    .score-track { flex: 1; height: 4px; background: var(--gray-100); border-radius: 2px; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 2px; }
+    .score-num { font-size: 12px; font-weight: 500; min-width: 26px; text-align: right; }
+    .btn-act { font-size: 11px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--gray-300); background: var(--white); cursor: pointer; color: var(--gray-500); white-space: nowrap; transition: all 0.1s; }
+    .btn-act:hover { border-color: var(--navy); color: var(--navy); background: #EEF3FB; }
+    .empty { padding: 40px; text-align: center; color: var(--gray-500); font-size: 13px; }
+    .error-bar { padding: 10px 16px; font-size: 12px; color: var(--red); background: var(--red-bg); border-top: 1px solid #FECACA; display: none; }
+    .count-bar { padding: 8px 16px; font-size: 12px; color: var(--gray-500); border-bottom: 1px solid var(--gray-100); background: var(--gray-50); }
+
+    /* Modal */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+    .modal-bg.open { display: flex; }
+    .modal { background: var(--white); border-radius: var(--radius); width: 90%; max-width: 540px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+    .modal h3 { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 12px; }
+    .modal-body { font-size: 13px; line-height: 1.7; color: var(--gray-700); margin-bottom: 16px; }
+    .modal-field { margin-bottom: 8px; }
+    .modal-field span { font-weight: 500; color: var(--navy); }
+    .modal-close { padding: 7px 16px; border-radius: var(--radius-sm); border: 1px solid var(--gray-300); background: var(--white); cursor: pointer; font-size: 13px; color: var(--gray-500); }
+    .modal-close:hover { background: var(--gray-50); }
+
+    @media (max-width: 700px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .table-head, .row { grid-template-columns: 1fr 90px 80px; }
+      .th:nth-child(3), .row > *:nth-child(3),
+      .th:nth-child(5), .row > *:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-block">
+      <div class="monogram">M/E</div>
+      <div class="logo-text">
+        <div class="name">MAJESTIC ESTATE</div>
+        <div class="sub">luxury real estate · radar prospection</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div> LIVE BODACC</div>
+      <div class="last-update" id="lastUpdate">—</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Annonces chargées</div>
+      <div class="stat-val" id="sTotal">—</div>
+      <div class="stat-sub">60 derniers jours · PACA</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Liquidations</div>
+      <div class="stat-val" id="sLiq">—</div>
+      <div class="stat-sub">Signal fort</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Ventes / cessions</div>
+      <div class="stat-val" id="sVente">—</div>
+      <div class="stat-sub">Signal modéré</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Score moyen IA</div>
+      <div class="stat-val" id="sScore">—</div>
+      <div class="stat-sub">Potentiel immo estimé</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Secteur</label>
+      <select id="fSecteur" onchange="applyFilter()">
+        <option value="paca">Toute la PACA</option>
+        <option value="aix" selected>Aix-en-Provence</option>
+        <option value="marseille">Marseille</option>
+        <option value="cannes">Cannes</option>
+        <option value="nice">Nice</option>
+        <option value="var">Var</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Type</label>
+      <select id="fType" onchange="applyFilter()">
+        <option value="">Tous</option>
+        <option value="liquidation">Liquidations</option>
+        <option value="redressement">Redressements</option>
+        <option value="vente">Ventes / cessions</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Score min</label>
+      <select id="fScore" onchange="applyFilter()">
+        <option value="0">Tous</option>
+        <option value="60">60+</option>
+        <option value="70" selected>70+</option>
+        <option value="80">80+</option>
+      </select>
+    </div>
+    <button class="btn-refresh" id="btnRefresh" onclick="loadData()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Actualiser
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <div class="count-bar" id="countBar">Chargement des données BODACC...</div>
+    <div class="table-head">
+      <div class="th">Annonce</div>
+      <div class="th">Type signal</div>
+      <div class="th">Ville</div>
+      <div class="th">Score immo</div>
+      <div class="th">Action</div>
+    </div>
+    <div id="tableBody"><div class="empty">Connexion au BODACC en cours...</div></div>
+    <div id="errorBar" class="error-bar"></div>
+  </div>
+</main>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="mTitle">Détail de l'annonce</h3>
+    <div class="modal-body" id="mBody"></div>
+    <button class="modal-close" onclick="closeModal()">Fermer</button>
+  </div>
+</div>
+
+<script>
+let allData = [];
+
+function score(r) {
+  let s = 35;
+  const fam = (r.familleavis||'').toLowerCase();
+  const txt = ((r.commercant||'')+(r.activite||'')).toLowerCase();
+  if (fam.includes('liquidation')) s += 40;
+  else if (fam.includes('redressement')) s += 28;
+  else if (fam.includes('vente')||fam.includes('cession')) s += 18;
+  if (txt.includes('immobilier')||txt.includes('foncier')||txt.includes('agence')) s += 18;
+  if (txt.includes('luxe')||txt.includes('prestige')||txt.includes('villa')||txt.includes('château')) s += 10;
+  if (txt.includes('gérant')||txt.includes('sci ')||txt.includes('sarl')) s += 5;
+  return Math.min(s, 99);
+}
+
+function scoreColor(s) {
+  if (s >= 75) return { bar: '#16A34A', text: '#166534' };
+  if (s >= 55) return { bar: '#D97706', text: '#92400E' };
+  return { bar: '#9CA3AF', text: '#6B7280' };
+}
+
+function badgeHtml(fam) {
+  const f = (fam||'').toLowerCase();
+  if (f.includes('liquidation')) return `<span class="badge badge-red">Liquidation</span>`;
+  if (f.includes('redressement')) return `<span class="badge badge-amber">Redressement</span>`;
+  if (f.includes('vente')||f.includes('cession')) return `<span class="badge badge-blue">Vente / cession</span>`;
+  return `<span class="badge badge-gray">${fam||'Autre'}</span>`;
+}
+
+function applyFilter() {
+  const minScore = parseInt(document.getElementById('fScore').value)||0;
+  const typ = document.getElementById('fType').value.toLowerCase();
+  let rows = allData.filter(r => {
+    if (score(r) < minScore) return false;
+    if (typ) {
+      const f = (r.familleavis||'').toLowerCase();
+      if (typ === 'liquidation' && !f.includes('liquidation')) return false;
+      if (typ === 'redressement' && !f.includes('redressement')) return false;
+      if (typ === 'vente' && !f.includes('vente') && !f.includes('cession')) return false;
+    }
+    return true;
+  });
+  rows.sort((a,b) => score(b)-score(a));
+  renderRows(rows);
+}
+
+function renderRows(rows) {
+  const body = document.getElementById('tableBody');
+  document.getElementById('countBar').textContent = `${rows.length} annonce${rows.length>1?'s':''} affichée${rows.length>1?'s':''}`;
+  if (!rows.length) { body.innerHTML = '<div class="empty">Aucune annonce pour ces filtres.</div>'; return; }
+  body.innerHTML = rows.slice(0,30).map((r,i) => {
+    const s = score(r);
+    const c = scoreColor(s);
+    const nom = (r.commercant||r.denomination||'Annonce BODACC').slice(0,48);
+    const act = (r.activite||'Activité non précisée').slice(0,42);
+    const ville = r.ville||r.cp||'—';
+    const date = (r.dateparution||'').slice(0,10);
+    return `<div class="row" onclick="openModal(${i})">
+      <div>
+        <div class="row-name">${nom}</div>
+        <div class="row-detail">${act} · ${date}</div>
+      </div>
+      <div>${badgeHtml(r.familleavis)}</div>
+      <div style="font-size:12px;color:var(--gray-500)">${ville}</div>
+      <div>
+        <div class="score-wrap">
+          <div class="score-track"><div class="score-fill" style="width:${s}%;background:${c.bar}"></div></div>
+          <span class="score-num" style="color:${c.text}">${s}</span>
+        </div>
+      </div>
+      <div><button class="btn-act" onclick="event.stopPropagation();openModal(${i})">Voir détail</button></div>
+    </div>`;
+  }).join('');
+  window._rows = rows;
+}
+
+function openModal(i) {
+  const r = (window._rows||[])[i]; if(!r) return;
+  const s = score(r);
+  document.getElementById('mTitle').textContent = r.commercant||r.denomination||'Annonce BODACC';
+  document.getElementById('mBody').innerHTML = `
+    <div class="modal-field"><span>Type :</span> ${r.familleavis||'—'}</div>
+    <div class="modal-field"><span>Ville :</span> ${r.ville||r.cp||'—'}</div>
+    <div class="modal-field"><span>Activité :</span> ${r.activite||'Non précisée'}</div>
+    <div class="modal-field"><span>Date parution :</span> ${(r.dateparution||'').slice(0,10)}</div>
+    <div class="modal-field"><span>Département :</span> ${r.departement_nom_officiel||'—'}</div>
+    <div class="modal-field"><span>Score immo IA :</span> ${s}/99</div>
+    <div style="margin-top:12px;padding:10px;background:#EEF3FB;border-radius:6px;font-size:12px;color:#1E40AF">
+      💡 <strong>Conseil IA :</strong> ${s>=75?'Signal fort — à contacter en priorité. Propriétaire probablement en situation contrainte, ouvert à une vente rapide.':s>=55?'Signal modéré — à surveiller. Peut évoluer vers une liquidation ou cession immobilière.':'Signal faible — garder en veille passive.'}</div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+async function loadData() {
+  const btn = document.getElementById('btnRefresh');
+  const err = document.getElementById('errorBar');
+  btn.classList.add('loading');
+  err.style.display = 'none';
+  document.getElementById('tableBody').innerHTML = '<div class="empty">Connexion au BODACC...</div>';
+  document.getElementById('countBar').textContent = 'Chargement...';
+
+  const secteur = document.getElementById('fSecteur').value;
+  const type    = document.getElementById('fType').value;
+
+  try {
+    const res = await fetch(`/api/bodacc?secteur=${secteur}&type=${type}&limit=100`);
+    if (!res.ok) throw new Error(`Erreur serveur ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    allData = (data.results||[]);
+    const liq   = allData.filter(r=>(r.familleavis||'').toLowerCase().includes('liquidation')).length;
+    const vente  = allData.filter(r=>{const f=(r.familleavis||'').toLowerCase();return f.includes('vente')||f.includes('cession');}).length;
+    const scores = allData.map(score);
+    const avg    = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+
+    document.getElementById('sTotal').textContent = allData.length;
+    document.getElementById('sLiq').textContent   = liq;
+    document.getElementById('sVente').textContent = vente;
+    document.getElementById('sScore').textContent = avg+'/99';
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+
+    btn.classList.remove('loading');
+    applyFilter();
+
+  } catch(e) {
+    btn.classList.remove('loading');
+    err.textContent = 'Erreur : ' + e.message;
+    err.style.display = 'block';
+    document.getElementById('tableBody').innerHTML = '<div class="empty">Impossible de charger les données.</div>';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
