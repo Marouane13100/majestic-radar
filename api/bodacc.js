@@ -8,20 +8,22 @@ export default async function handler(req, res) {
     const dateLimit = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
       .toISOString().slice(0, 10);
 
-    let deptFilter;
-    if (secteur === 'aix' || secteur === 'marseille') {
-      deptFilter = `departement_nom_officiel="Bouches-du-Rhône"`;
+    let cpFilter;
+    if (secteur === 'aix') {
+      cpFilter = `cp like '13*'`;
+    } else if (secteur === 'marseille') {
+      cpFilter = `cp like '13*'`;
     } else if (secteur === 'cannes' || secteur === 'nice') {
-      deptFilter = `departement_nom_officiel="Alpes-Maritimes"`;
+      cpFilter = `cp like '06*'`;
     } else if (secteur === 'var') {
-      deptFilter = `departement_nom_officiel="Var"`;
+      cpFilter = `cp like '83*'`;
     } else {
-      deptFilter = `(departement_nom_officiel="Bouches-du-Rhône" OR departement_nom_officiel="Alpes-Maritimes" OR departement_nom_officiel="Var")`;
+      cpFilter = `(cp like '13*' OR cp like '06*' OR cp like '83*' OR cp like '04*' OR cp like '05*')`;
     }
 
-    const where = `dateparution>=date'${dateLimit}' AND ${deptFilter}`;
+    const where = `dateparution>=date'${dateLimit}' AND ${cpFilter}`;
 
-    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=${encodeURIComponent(where)}&order_by=dateparution%20DESC&limit=${limit}&select=commercant,denomination,ville,cp,familleavis,dateparution,activite,departement_nom_officiel`;
+    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=${encodeURIComponent(where)}&order_by=dateparution%20DESC&limit=${limit}&select=commercant,denomination,ville,cp,familleavis,dateparution,activite`;
 
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json' }
@@ -29,7 +31,7 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const text = await response.text();
-      return res.status(500).json({ error: `BODACC ${response.status}: ${text.slice(0,300)}` });
+      return res.status(500).json({ error: `BODACC ${response.status}: ${text.slice(0,500)}` });
     }
 
     const data = await response.json();
