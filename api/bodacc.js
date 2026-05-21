@@ -5,38 +5,31 @@ export default async function handler(req, res) {
     const secteur = req.query.secteur || 'paca';
     const limit = req.query.limit || 50;
 
-    const deptMap = {
-      'aix':       'Bouches-du-Rhône',
-      'marseille': 'Bouches-du-Rhône',
-      'cannes':    'Alpes-Maritimes',
-      'nice':      'Alpes-Maritimes',
-      'var':       'Var',
-    };
-
-    const dept = deptMap[secteur];
     const dateLimit = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
       .toISOString().slice(0, 10);
 
-    let whereClause;
-    if (dept) {
-      whereClause = `dateparution >= date'${dateLimit}' AND departement_nom_officiel:'${dept}'`;
+    let deptFilter;
+    if (secteur === 'aix' || secteur === 'marseille') {
+      deptFilter = `departement_nom_officiel="Bouches-du-Rhône"`;
+    } else if (secteur === 'cannes' || secteur === 'nice') {
+      deptFilter = `departement_nom_officiel="Alpes-Maritimes"`;
+    } else if (secteur === 'var') {
+      deptFilter = `departement_nom_officiel="Var"`;
     } else {
-      whereClause = `dateparution >= date'${dateLimit}' AND (departement_nom_officiel:'Bouches-du-Rhône' OR departement_nom_officiel:'Alpes-Maritimes' OR departement_nom_officiel:'Var')`;
+      deptFilter = `(departement_nom_officiel="Bouches-du-Rhône" OR departement_nom_officiel="Alpes-Maritimes" OR departement_nom_officiel="Var")`;
     }
 
-    const url = new URL('https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records');
-    url.searchParams.set('where', whereClause);
-    url.searchParams.set('order_by', 'dateparution DESC');
-    url.searchParams.set('limit', String(limit));
-    url.searchParams.set('select', 'commercant,denomination,ville,cp,familleavis,dateparution,activite,departement_nom_officiel');
+    const where = `dateparution>=date'${dateLimit}' AND ${deptFilter}`;
 
-    const response = await fetch(url.toString(), {
+    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=${encodeURIComponent(where)}&order_by=dateparution%20DESC&limit=${limit}&select=commercant,denomination,ville,cp,familleavis,dateparution,activite,departement_nom_officiel`;
+
+    const response = await fetch(url, {
       headers: { 'Accept': 'application/json' }
     });
 
     if (!response.ok) {
       const text = await response.text();
-      return res.status(500).json({ error: `BODACC error ${response.status}: ${text.slice(0, 200)}` });
+      return res.status(500).json({ error: `BODACC ${response.status}: ${text.slice(0,300)}` });
     }
 
     const data = await response.json();
