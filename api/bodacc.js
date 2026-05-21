@@ -3,27 +3,13 @@ export default async function handler(req, res) {
 
   try {
     const secteur = req.query.secteur || 'paca';
-    const limit = req.query.limit || 50;
+    const limit = parseInt(req.query.limit) || 50;
 
     const dateLimit = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
       .toISOString().slice(0, 10);
 
-    let cpFilter;
-    if (secteur === 'aix') {
-      cpFilter = `cp like '13*'`;
-    } else if (secteur === 'marseille') {
-      cpFilter = `cp like '13*'`;
-    } else if (secteur === 'cannes' || secteur === 'nice') {
-      cpFilter = `cp like '06*'`;
-    } else if (secteur === 'var') {
-      cpFilter = `cp like '83*'`;
-    } else {
-      cpFilter = `(cp like '13*' OR cp like '06*' OR cp like '83*' OR cp like '04*' OR cp like '05*')`;
-    }
-
-    const where = `dateparution>=date'${dateLimit}' AND ${cpFilter}`;
-
-    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=${encodeURIComponent(where)}&order_by=dateparution%20DESC&limit=${limit}&select=commercant,denomination,ville,cp,familleavis,dateparution,activite`;
+    // Requête simple sans filtre département — filtrage fait côté serveur
+    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=dateparution%3E%3Ddate'${dateLimit}'&order_by=dateparution%20DESC&limit=100&select=commercant%2Cdenomination%2Cville%2Ccp%2Cfamilleavis%2Cdateparution%2Cactivite`;
 
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json' }
@@ -31,12 +17,20 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const text = await response.text();
-      return res.status(500).json({ error: `BODACC ${response.status}: ${text.slice(0,500)}` });
+      return res.status(500).json({ error: `BODACC ${response.status}: ${text.slice(0, 300)}` });
     }
 
     const data = await response.json();
+
+    // Filtrage PACA côté serveur par code postal
+    const pacaCodes = ['13', '06', '83', '04', '05', '84'];
+    const filtered = (data.results || []).filter(r => {
+      const cp = (r.cp || '').toString();
+      return pacaCodes.some(code => cp.startsWith(code));
+    });
+
     res.setHeader('Cache-Control', 's-maxage=300');
-    return res.status(200).json(data);
+    return res.status(200).json({ results: filtered, total_count: filtered.length });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
