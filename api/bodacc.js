@@ -1,20 +1,14 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   try {
-    const secteur = req.query.secteur || 'paca';
+    const secteur = req.query.secteur || 'aix';
     const deptMap = {
-      'aix':       '13',
-      'marseille': '13',
-      'cannes':    '06',
-      'nice':      '06',
-      'var':       '83',
+      'aix': '13', 'marseille': '13',
+      'cannes': '06', 'nice': '06', 'var': '83',
     };
-    const dept = deptMap[secteur];
-    const where = dept
-      ? `numerodepartement=${dept}`
-      : `numerodepartement=13 OR numerodepartement=6 OR numerodepartement=83`;
+    const dept = deptMap[secteur] || '13';
 
-    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=${encodeURIComponent(where)}&order_by=dateparution%20DESC&limit=100&select=commercant,denomination,ville,cp,familleavis,dateparution,activite,numerodepartement`;
+    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=numerodepartement%3D${dept}&order_by=dateparution%20DESC&limit=100&select=commercant,denomination,ville,cp,familleavis,dateparution,activite,numerodepartement`;
 
     const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!response.ok) {
