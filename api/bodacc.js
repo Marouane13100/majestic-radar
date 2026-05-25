@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     };
     const dept = deptMap[secteur] || '13';
 
-    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=numerodepartement%3D${dept}&order_by=dateparution%20DESC&limit=100&select=commercant,ville,cp,familleavis,dateparution,activite,numerodepartement`;
+    const url = `https://bodacc-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/annonces-commerciales/records?where=numerodepartement%3D${dept}&order_by=dateparution%20DESC&limit=100&select=commercant,ville,cp,familleavis,dateparution,numerodepartement`;
 
     const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!response.ok) {
