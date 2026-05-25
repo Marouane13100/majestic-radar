@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     };
 
     const depts = deptMap[secteur] || deptMap['paca'];
-    const deptFilter = depts.map(d => `numerodepartement="${d}"`).join(' OR ');
+    const deptFilter = depts.map(d => `numerodepartement=${d}`).join(' OR ');
 
     const params = new URLSearchParams();
     params.set('where', `(${deptFilter})`);
